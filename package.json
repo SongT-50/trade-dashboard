@@ -1,0 +1,28 @@
+{
+  "name": "central-office-trading-dashboard",
+  "version": "1.0.0",
+  "description": "중앙청 거래실적 대시보드 - 2021년 이후 거래 금액 및 물량 자료 시각화",
+  "main": "index.html",
+  "scripts": {
+    "start": "npx http-server -p 8000 -o",
+    "build": "echo 'No build process needed for static HTML'",
+    "deploy": "echo 'Ready for deployment to any static hosting service'"
+  },
+  "keywords": [
+    "dashboard",
+    "trading",
+    "data-visualization",
+    "chart",
+    "korean"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "devDependencies": {
+    "http-server": "^14.1.1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/central-office-trading-dashboard.git"
+  },
+  "homepage": "https://yourusername.github.io/central-office-trading-dashboard"
+}
