@@ -414,6 +414,24 @@
                 </select>
             </div>
             <div class="control-group">
+                <label for="monthFilter">📆 월별 비교</label>
+                <select id="monthFilter">
+                    <option value="all">전체 월</option>
+                    <option value="1">1월</option>
+                    <option value="2">2월</option>
+                    <option value="3">3월</option>
+                    <option value="4">4월</option>
+                    <option value="5">5월</option>
+                    <option value="6">6월</option>
+                    <option value="7">7월</option>
+                    <option value="8">8월</option>
+                    <option value="9">9월</option>
+                    <option value="10">10월</option>
+                    <option value="11">11월</option>
+                    <option value="12">12월</option>
+                </select>
+            </div>
+            <div class="control-group">
                 <label for="metricFilter">📈 지표</label>
                 <select id="metricFilter">
                     <option value="amount">물량 (톤)</option>
@@ -442,6 +460,15 @@
                 <h3 id="yearlyChartTitle">연도별 비교</h3>
                 <div class="chart-container">
                     <canvas id="yearlyChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="dashboard">
+            <div class="card">
+                <h3 id="monthComparisonChartTitle">월별 비교 (예: 1월)</h3>
+                <div class="chart-container">
+                    <canvas id="monthComparisonChart"></canvas>
                 </div>
             </div>
         </div>
@@ -660,6 +687,81 @@
                     }
                 }
             });
+
+            // 월별 비교 차트 생성
+            createMonthComparisonChart(data, metricType);
+        }
+
+        // 월별 비교 차트 생성
+        function createMonthComparisonChart(data, metricType = 'amount') {
+            const monthFilter = document.getElementById('monthFilter').value;
+            const metricLabel = metricType === 'amount' ? '물량' : (metricType === 'value' ? '금액' : '수수료');
+            const formatType = metricType === 'amount' ? 'amount' : 'currency';
+            
+            // 월별 비교 차트 제목 업데이트
+            if (monthFilter !== 'all') {
+                document.getElementById('monthComparisonChartTitle').textContent = `${monthFilter}월별 비교 (${metricLabel})`;
+            } else {
+                document.getElementById('monthComparisonChartTitle').textContent = `월별 비교 (${metricLabel})`;
+            }
+
+            // 월별 데이터 그룹화
+            const monthData = {};
+            data.forEach(item => {
+                const month = item.date.split('.')[1].trim();
+                const year = item.date.split('.')[0];
+                
+                if (monthFilter === 'all' || month === monthFilter) {
+                    if (!monthData[month]) {
+                        monthData[month] = { vegetable: 0, fruit: 0, years: [] };
+                    }
+                    monthData[month].vegetable += item.vegetable[metricType];
+                    monthData[month].fruit += item.fruit[metricType];
+                    if (!monthData[month].years.includes(year)) {
+                        monthData[month].years.push(year);
+                    }
+                }
+            });
+
+            const monthComparisonCtx = document.getElementById('monthComparisonChart').getContext('2d');
+            new Chart(monthComparisonCtx, {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(monthData).sort((a, b) => parseInt(a) - parseInt(b)),
+                    datasets: [{
+                        label: '채소',
+                        data: Object.keys(monthData).sort((a, b) => parseInt(a) - parseInt(b)).map(month => monthData[month].vegetable),
+                        backgroundColor: '#4CAF50',
+                        borderColor: '#4CAF50',
+                        borderWidth: 1
+                    }, {
+                        label: '과일',
+                        data: Object.keys(monthData).sort((a, b) => parseInt(a) - parseInt(b)).map(month => monthData[month].fruit),
+                        backgroundColor: '#FF9800',
+                        borderColor: '#FF9800',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return formatNumber(value, formatType);
+                                }
+                            }
+                        }
+                    }
+                }
+            });
         }
 
         // 테이블 생성
@@ -698,10 +800,6 @@
                     <div class="stat-label">총 거래 금액</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-value">${formatNumber(stats.totalFee, 'currency')}</div>
-                    <div class="stat-label">총 수수료</div>
-                </div>
-                <div class="stat-card">
                     <div class="stat-value">${formatNumber(stats.avgMonthlyValue, 'currency')}</div>
                     <div class="stat-label">월평균 거래금액</div>
                 </div>
@@ -711,12 +809,20 @@
         // 필터 기능
         function applyFilters() {
             const yearFilter = document.getElementById('yearFilter').value;
+            const monthFilter = document.getElementById('monthFilter').value;
             const metricFilter = document.getElementById('metricFilter').value;
             
             let filteredData = [...data];
             
             if (yearFilter !== 'all') {
                 filteredData = filteredData.filter(item => item.date.startsWith(yearFilter));
+            }
+            
+            if (monthFilter !== 'all') {
+                filteredData = filteredData.filter(item => {
+                    const month = item.date.split('.')[1].trim();
+                    return month === monthFilter;
+                });
             }
             
             // 필터링된 데이터로 통계 및 차트 업데이트
@@ -763,6 +869,7 @@
             
             // 이벤트 리스너
             document.getElementById('yearFilter').addEventListener('change', applyFilters);
+            document.getElementById('monthFilter').addEventListener('change', applyFilters);
             document.getElementById('metricFilter').addEventListener('change', applyFilters);
         });
     </script>
