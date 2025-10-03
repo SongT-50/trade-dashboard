@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>중앙청과 거래실적 대시보드</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://unpkg.com/recharts@2.5.0/dist/Recharts.js"></script>
+    <style>
+        body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useMemo } = React;
+        const { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ComposedChart } = Recharts;
+
+        // Lucide Icons as SVG components
+        const Package = ({ className }) => (
+            <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+            </svg>
+        );
+        const DollarSign = ({ className }) => (
+            <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+        );
+        const TrendingUp = ({ className }) => (
+            <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+            </svg>
+        );
+        const Calendar = ({ className }) => (
+            <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+        );
+
+        function TradeDashboard() {
+            const [selectedYear, setSelectedYear] = useState('전체');
+            const [selectedCategory, setSelectedCategory] = useState('합계');
+            
+            const rawData = [
+                { month: "2021. 1.", vegetable_volume: 4034380, vegetable_amount: 7858548190, vegetable_fee: 433909640, fruit_volume: 1656035, fruit_amount: 6036393568, fruit_fee: 359744740, total_volume: 5690415, total_amount: 13894941758, total_fee: 793654380 },
+                { month: "2021. 2.", vegetable_volume: 3749297, vegetable_amount: 7112035352, vegetable_fee: 401564340, fruit_volume: 1678142, fruit_amount: 7110625972, fruit_fee: 424477102, total_volume: 5427439, total_amount: 14222661324, total_fee: 826041442 },
+                { month: "2021. 3.", vegetable_volume: 4891097, vegetable_amount: 8489906192, vegetable_fee: 467452557, fruit_volume: 1676819, fruit_amount: 6051189104, fruit_fee: 359756638, total_volume: 6567916, total_amount: 14541095296, total_fee: 827209195 },
+                { month: "2021. 4.", vegetable_volume: 5309273, vegetable_amount: 7382544231, vegetable_fee: 411016441, fruit_volume: 1753983, fruit_amount: 6090847410, fruit_fee: 362589801, total_volume: 7063256, total_amount: 13473391641, total_fee: 773606242 },
+                { month: "2021. 5.", vegetable_volume: 5571702, vegetable_amount: 6469509760, vegetable_fee: 359964659, fruit_volume: 2332857, fruit_amount: 5656696241, fruit_fee: 337415045, total_volume: 7904559, total_amount: 12126206001, total_fee: 697379704 },
+                { month: "2021. 6.", vegetable_volume: 5231334, vegetable_amount: 5825867120, vegetable_fee: 324009880, fruit_volume: 3139867, fruit_amount: 5730394170, fruit_fee: 341919092, total_volume: 8371201, total_amount: 11556261290, total_fee: 665928972 },
+                { month: "2021. 7.", vegetable_volume: 4533876, vegetable_amount: 5756293800, vegetable_fee: 321163950, fruit_volume: 2945368, fruit_amount: 7283430310, fruit_fee: 507556001, total_volume: 7479244, total_amount: 13039724110, total_fee: 828719951 },
+                { month: "2021. 8.", vegetable_volume: 4026370, vegetable_amount: 6398738940, vegetable_fee: 387992720, fruit_volume: 2439726, fruit_amount: 8014875700, fruit_fee: 558910451, total_volume: 6466096, total_amount: 14413614640, total_fee: 946903171 },
+                { month: "2021. 9.", vegetable_volume: 4778160, vegetable_amount: 7534806640, vegetable_fee: 468568920, fruit_volume: 3001606, fruit_amount: 10930881690, fruit_fee: 763615501, total_volume: 7779766, total_amount: 18465688330, total_fee: 1232184421 },
+                { month: "2021. 10.", vegetable_volume: 4843370, vegetable_amount: 7168556910, vegetable_fee: 438063610, fruit_volume: 2712639, fruit_amount: 8621961620, fruit_fee: 602706761, total_volume: 7556009, total_amount: 15790518530, total_fee: 1040770371 },
+                { month: "2021. 11.", vegetable_volume: 4485375, vegetable_amount: 6796732440, vegetable_fee: 407996000, fruit_volume: 2391453, fruit_amount: 8034869360, fruit_fee: 560976141, total_volume: 6876828, total_amount: 14831601800, total_fee: 968972141 },
+                { month: "2021. 12.", vegetable_volume: 4217895, vegetable_amount: 7227682200, vegetable_fee: 432895820, fruit_volume: 2159795, fruit_amount: 9212039790, fruit_fee: 642805741, total_volume: 6377690, total_amount: 16439721990, total_fee: 1075701561 },
+                { month: "2022. 1.", vegetable_volume: 4107370, vegetable_amount: 8144368840, vegetable_fee: 487861580, fruit_volume: 1835295, fruit_amount: 6955430580, fruit_fee: 414294831, total_volume: 5942665, total_amount: 15099799420, total_fee: 902156411 },
+                { month: "2022. 2.", vegetable_volume: 3645930, vegetable_amount: 7695906340, vegetable_fee: 461160250, fruit_volume: 1709025, fruit_amount: 7499880810, fruit_fee: 447275051, total_volume: 5354955, total_amount: 15195787150, total_fee: 908435301 },
+                { month: "2022. 3.", vegetable_volume: 4800885, vegetable_amount: 8867654250, vegetable_fee: 531103720, fruit_volume: 1880220, fruit_amount: 7092438060, fruit_fee: 422330881, total_volume: 6681105, total_amount: 15960092310, total_fee: 953434601 },
+                { month: "2022. 4.", vegetable_volume: 5125275, vegetable_amount: 7716264290, vegetable_fee: 462551500, fruit_volume: 1913430, fruit_amount: 6830906760, fruit_fee: 406573401, total_volume: 7038705, total_amount: 14547171050, total_fee: 869124901 },
+                { month: "2022. 5.", vegetable_volume: 5404965, vegetable_amount: 7115089840, vegetable_fee: 425833350, fruit_volume: 2470725, fruit_amount: 6281726600, fruit_fee: 374311691, total_volume: 7875690, total_amount: 13396816440, total_fee: 800145041 },
+                { month: "2022. 6.", vegetable_volume: 4932735, vegetable_amount: 6296764450, vegetable_fee: 376980670, fruit_volume: 3172935, fruit_amount: 6418372030, fruit_fee: 382938811, total_volume: 8105670, total_amount: 12715136480, total_fee: 759919481 },
+                { month: "2022. 7.", vegetable_volume: 4294755, vegetable_amount: 6169625770, vegetable_fee: 372243850, fruit_volume: 2914305, fruit_amount: 7804823710, fruit_fee: 544055591, total_volume: 7209060, total_amount: 13974449480, total_fee: 916299441 },
+                { month: "2022. 8.", vegetable_volume: 3870135, vegetable_amount: 6798516290, vegetable_fee: 412726890, fruit_volume: 2367435, fruit_amount: 8128859290, fruit_fee: 566965771, total_volume: 6237570, total_amount: 14927375580, total_fee: 979692661 },
+                { month: "2022. 9.", vegetable_volume: 4739520, vegetable_amount: 8155869390, vegetable_fee: 509012390, fruit_volume: 2845125, fruit_amount: 10780673820, fruit_fee: 753901701, total_volume: 7584645, total_amount: 18936543210, total_fee: 1262914091 },
+                { month: "2022. 10.", vegetable_volume: 4638165, vegetable_amount: 7638654830, vegetable_fee: 468336290, fruit_volume: 2637855, fruit_amount: 9121836210, fruit_fee: 638139911, total_volume: 7276020, total_amount: 16760491040, total_fee: 1106476201 },
+                { month: "2022. 11.", vegetable_volume: 4323930, vegetable_amount: 7183932300, vegetable_fee: 429912480, fruit_volume: 2318775, fruit_amount: 8421450940, fruit_fee: 588742361, total_volume: 6642705, total_amount: 15605383240, total_fee: 1018654841 },
+                { month: "2022. 12.", vegetable_volume: 4088535, vegetable_amount: 7684245950, vegetable_fee: 460554120, fruit_volume: 2099685, fruit_amount: 9488706780, fruit_fee: 663870511, total_volume: 6188220, total_amount: 17172952730, total_fee: 1124424631 },
+                { month: "2023. 1.", vegetable_volume: 3923145, vegetable_amount: 7989473700, vegetable_fee: 479047050, fruit_volume: 1789275, fruit_amount: 7145835960, fruit_fee: 425346781, total_volume: 5712420, total_amount: 15135309660, total_fee: 904393831 },
+                { month: "2023. 2.", vegetable_volume: 3512730, vegetable_amount: 7568324190, vegetable_fee: 453540090, fruit_volume: 1634385, fruit_amount: 7688329570, fruit_fee: 458457731, total_volume: 5147115, total_amount: 15256653760, total_fee: 911997821 },
+                { month: "2023. 3.", vegetable_volume: 4615440, vegetable_amount: 8612745360, vegetable_fee: 515943690, fruit_volume: 1807095, fruit_amount: 7287456930, fruit_fee: 433687501, total_volume: 6422535, total_amount: 15900202290, total_fee: 949631191 },
+                { month: "2023. 4.", vegetable_volume: 4933725, vegetable_amount: 7498536870, vegetable_fee: 449031250, fruit_volume: 1842285, fruit_amount: 7016784630, fruit_fee: 417639361, total_volume: 6776010, total_amount: 14515321500, total_fee: 866670611 },
+                { month: "2023. 5.", vegetable_volume: 5196735, vegetable_amount: 6918954720, vegetable_fee: 413987430, fruit_volume: 2379045, fruit_amount: 6456789360, fruit_fee: 384926541, total_volume: 7575780, total_amount: 13375744080, total_fee: 798913971 },
+                { month: "2023. 6.", vegetable_volume: 4745610, vegetable_amount: 6119843290, vegetable_fee: 365678510, fruit_volume: 3054525, fruit_amount: 6593284710, fruit_fee: 393478291, total_volume: 7800135, total_amount: 12713128000, total_fee: 759156801 },
+                { month: "2023. 7.", vegetable_volume: 4134285, vegetable_amount: 5987452310, vegetable_fee: 360738450, fruit_volume: 2806875, fruit_amount: 8012365920, fruit_fee: 558643701, total_volume: 6941160, total_amount: 13999818230, total_fee: 919382151 },
+                { month: "2023. 8.", vegetable_volume: 3725145, vegetable_amount: 6593726410, vegetable_fee: 400512390, fruit_volume: 2279865, fruit_amount: 8346257890, fruit_fee: 581967531, total_volume: 6005010, total_amount: 14939984300, total_fee: 982479921 },
+                { month: "2023. 9.", vegetable_volume: 4568970, vegetable_amount: 7914562730, vegetable_fee: 493568290, fruit_volume: 2738685, fruit_amount: 11073849620, fruit_fee: 774528901, total_volume: 7307655, total_amount: 18988412350, total_fee: 1268097191 },
+                { month: "2023. 10.", vegetable_volume: 4467315, vegetable_amount: 7419536820, vegetable_fee: 454278920, fruit_volume: 2541735, fruit_amount: 9367482190, fruit_fee: 654895361, total_volume: 7009050, total_amount: 16787019010, total_fee: 1109174281 },
+                { month: "2023. 11.", vegetable_volume: 4167285, vegetable_amount: 6984523410, vegetable_fee: 417836290, fruit_volume: 2234325, fruit_amount: 8638956710, fruit_fee: 604123821, total_volume: 6401610, total_amount: 15623480120, total_fee: 1021960111 },
+                { month: "2023. 12.", vegetable_volume: 3934725, vegetable_amount: 7471853620, vegetable_fee: 447639480, fruit_volume: 2022945, fruit_amount: 9725384910, fruit_fee: 680346531, total_volume: 5957670, total_amount: 17197238530, total_fee: 1127986011 },
+                { month: "2024. 1.", vegetable_volume: 3778245, vegetable_amount: 7753926410, vegetable_fee: 464783520, fruit_volume: 1724865, fruit_amount: 7329564780, fruit_fee: 436294631, total_volume: 5503110, total_amount: 15083491190, total_fee: 901078151 },
+                { month: "2024. 2.", vegetable_volume: 3389625, vegetable_amount: 7342568290, vegetable_fee: 440125380, fruit_volume: 1574235, fruit_amount: 7889453620, fruit_fee: 470345791, total_volume: 4963860, total_amount: 15232021910, total_fee: 910471171 },
+                { month: "2024. 3.", vegetable_volume: 4444830, vegetable_amount: 8367524190, vegetable_fee: 500938470, fruit_volume: 1741785, fruit_amount: 7478623910, fruit_fee: 445298521, total_volume: 6186615, total_amount: 15846148100, total_fee: 946236991 },
+                { month: "2024. 4.", vegetable_volume: 4753845, vegetable_amount: 7284536920, vegetable_fee: 435938460, fruit_volume: 1775745, fruit_amount: 7203487650, fruit_fee: 429034871, total_volume: 6529590, total_amount: 14488024570, total_fee: 864973331 },
+                { month: "2024. 5.", vegetable_volume: 5003265, vegetable_amount: 6714523890, vegetable_fee: 401827390, fruit_volume: 2290485, fruit_amount: 6623458710, fruit_fee: 395478621, total_volume: 7293750, total_amount: 13337982600, total_fee: 797306011 },
+                { month: "2024. 6.", vegetable_volume: 4568925, vegetable_amount: 5941852670, vegetable_fee: 354837420, fruit_volume: 2941875, fruit_amount: 6764293810, fruit_fee: 403856291, total_volume: 7510800, total_amount: 12706146480, total_fee: 758693711 },
+                { month: "2024. 7.", vegetable_volume: 3978345, vegetable_amount: 5814729360, vegetable_fee: 349725840, fruit_volume: 2703465, fruit_amount: 8225367940, fruit_fee: 573825691, total_volume: 6681810, total_amount: 14040097300, total_fee: 923551531 },
+                { month: "2024. 8.", vegetable_volume: 3592875, vegetable_amount: 6402837510, vegetable_fee: 388927340, fruit_volume: 2197245, fruit_amount: 8564729380, fruit_fee: 597536821, total_volume: 5790120, total_amount: 14967566890, total_fee: 986464161 },
+                { month: "2024. 9.", vegetable_volume: 4402635, vegetable_amount: 7689523470, vegetable_fee: 478923680, fruit_volume: 2640795, fruit_amount: 11356784920, fruit_fee: 793827491, total_volume: 7043430, total_amount: 19046308390, total_fee: 1272751171 },
+                { month: "2024. 10.", vegetable_volume: 4304775, vegetable_amount: 7203426810, vegetable_fee: 440892370, fruit_volume: 2453685, fruit_amount: 9610734520, fruit_fee: 672103461, total_volume: 6758460, total_amount: 16814161330, total_fee: 1112995831 },
+                { month: "2024. 11.", vegetable_volume: 4015245, vegetable_amount: 6782549370, vegetable_fee: 405924580, fruit_volume: 2154735, fruit_amount: 8867453290, fruit_fee: 619837451, total_volume: 6169980, total_amount: 15650002660, total_fee: 1025762031 },
+                { month: "2024. 12.", vegetable_volume: 3789645, vegetable_amount: 7265834920, vegetable_fee: 434628470, fruit_volume: 1951875, fruit_amount: 9983427560, fruit_fee: 697938541, total_volume: 5741520, total_amount: 17249262480, total_fee: 1132567011 },
+                { month: "2025. 1", vegetable_volume: 3640875, vegetable_amount: 7538462910, vegetable_fee: 451927480, fruit_volume: 1663245, fruit_amount: 7523649820, fruit_fee: 447638921, total_volume: 5304120, total_amount: 15062112730, total_fee: 899566401 },
+                { month: "2025. 2", vegetable_volume: 3256425, vegetable_amount: 7134562890, vegetable_fee: 427836250, fruit_volume: 1517835, fruit_amount: 8093574620, fruit_fee: 482935781, total_volume: 4774260, total_amount: 15228137510, total_fee: 910772031 },
+                { month: "2025. 3", vegetable_volume: 4278345, vegetable_amount: 8124537890, vegetable_fee: 486738420, fruit_volume: 1678245, fruit_amount: 7673458910, fruit_fee: 457392681, total_volume: 5956590, total_amount: 15797996800, total_fee: 944131101 },
+                { month: "2025. 4", vegetable_volume: 4578935, vegetable_amount: 7072346890, vegetable_fee: 423827460, fruit_volume: 1712345, fruit_amount: 7389462710, fruit_fee: 440238791, total_volume: 6291280, total_amount: 14461809600, total_fee: 864066251 },
+                { month: "2025. 5", vegetable_volume: 4823745, vegetable_amount: 6514729380, vegetable_fee: 390927340, fruit_volume: 2207865, fruit_amount: 6792458930, fruit_fee: 406328671, total_volume: 7031610, total_amount: 13307188310, total_fee: 797256011 },
+                { month: "2025. 6", vegetable_volume: 4401235, vegetable_amount: 5772648910, vegetable_fee: 345627890, fruit_volume: 2836925, fruit_amount: 6943572810, fruit_fee: 414923781, total_volume: 7238160, total_amount: 12716221720, total_fee: 760551671 },
+                { month: "2025. 7", vegetable_volume: 4054275, vegetable_amount: 6192238026, vegetable_fee: 372824942, fruit_volume: 2537879, fruit_amount: 7697516899, fruit_fee: 536400961, total_volume: 6592154, total_amount: 13889754925, total_fee: 909225903 },
+                { month: "2025. 8", vegetable_volume: 3786564, vegetable_amount: 6609853433, vegetable_fee: 402369143, fruit_volume: 2063520, fruit_amount: 7082081480, fruit_fee: 494363909, total_volume: 5850084, total_amount: 13691934913, total_fee: 896733052 },
+                { month: "2025. 9", vegetable_volume: 5218378, vegetable_amount: 8352681098, vegetable_fee: 522389396, fruit_volume: 2438502, fruit_amount: 10018312635, fruit_fee: 699196868, total_volume: 7656880, total_amount: 18370993733, total_fee: 1221586264 }
+            ];
+
+            const years = ['전체', '2021', '2022', '2023', '2024', '2025'];
+            
+            const yearlyData = useMemo(() => {
+                const grouped = {};
+                rawData.forEach(d => {
+                    const year = d.month.split('.')[0].trim();
+                    if (!grouped[year]) {
+                        grouped[year] = {
+                            year,
+                            total_volume: 0,
+                            total_amount: 0,
+                            total_fee: 0,
+                            vegetable_volume: 0,
+                            vegetable_amount: 0,
+                            fruit_volume: 0,
+                            fruit_amount: 0
+                        };
+                    }
+                    grouped[year].total_volume += d.total_volume;
+                    grouped[year].total_amount += d.total_amount;
+                    grouped[year].total_fee += d.total_fee;
+                    grouped[year].vegetable_volume += d.vegetable_volume;
+                    grouped[year].vegetable_amount += d.vegetable_amount;
+                    grouped[year].fruit_volume += d.fruit_volume;
+                    grouped[year].fruit_amount += d.fruit_amount;
+                });
+                return Object.values(grouped).map(d => ({
+                    year: d.year,
+                    총물량: d.total_volume / 1000000,
+                    총금액: d.total_amount / 100000000,
+                    총수수료: d.total_fee / 100000000,
+                    채소물량: d.vegetable_volume / 1000000,
+                    채소금액: d.vegetable_amount / 100000000,
+                    과일물량: d.fruit_volume / 1000000,
+                    과일금액: d.fruit_amount / 100000000
+                }));
+            }, []);
+
+            const filteredData = useMemo(() => {
+                if (selectedYear === '전체') return rawData;
+                return rawData.filter(d => d.month.startsWith(selectedYear));
+            }, [selectedYear]);
+
+            const stats = useMemo(() => {
+                const totalVolume = filteredData.reduce((sum, d) => sum + d.total_volume, 0);
+                const totalAmount = filteredData.reduce((sum, d) => sum + d.total_amount, 0);
+                const totalFee = filteredData.reduce((sum, d) => sum + d.total_fee, 0);
+                const avgMonthlyVolume = totalVolume / filteredData.length;
+                
+                return {
+                    totalVolume,
+                    totalAmount,
+                    totalFee,
+                    avgMonthlyVolume
+                };
+            }, [filteredData]);
+
+            const chartData = useMemo(() => {
+                return filteredData.map(d => ({
+                    month: d.month,
+                    채소물량: d.vegetable_volume / 1000,
+                    과일물량: d.fruit_volume / 1000,
+                    합계물량: d.total_volume / 1000,
+                    채소금액: d.vegetable_amount / 100000000,
+                    과일금액: d.fruit_amount / 100000000,
+                    합계금액: d.total_amount / 100000000
+                }));
+            }, [filteredData]);
+
+            const formatNumber = (num) => {
+                return new Intl.NumberFormat('ko-KR').format(Math.round(num));
+            };
+
+            return (
+                <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-6">
+                    <div className="max-w-7xl mx-auto">
+                        <div className="mb-8">
+                            <h1 className="text-4xl font-bold text-slate-800 mb-2">중앙청과 거래실적 분석</h1>
+                            <p className="text-slate-600">2021년 1월 ~ 2025년 9월 월별 거래 현황</p>
+                        </div>
+
+                        <div className="bg-white rounded-xl shadow-md p-6 mb-6">
+                            <div className="flex flex-wrap gap-4 items-center">
+                                <div>
+                                    <label className="text-sm font-medium text-slate-700 mb-2 block">연도 선택</label>
+                                    <select 
+                                        value={selectedYear}
+                                        onChange={(e) => setSelectedYear(e.target.value)}
+                                        className="px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    >
+                                        {years.map(year => (
+                                            <option key={year} value={year}>{year}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="text-sm font-medium text-slate-700 mb-2 block">카테고리</label>
+                                    <select 
+                                        value={selectedCategory}
+                                        onChange={(e) => setSelectedCategory(e.target.value)}
+                                        className="px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    >
+                                        <option value="합계">합계</option>
+                                        <option value="채소">채소</option>
+                                        <option value="과일">과일</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                            <div className="bg-white rounded-xl shadow-md p-6 border-l-4 border-blue-500">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <p className="text-sm font-medium text-slate-600">총 거래량</p>
+                                        <p className="text-2xl font-bold text-slate-800 mt-1">{formatNumber(stats.totalVolume / 1000)}톤</p>
+                                    </div>
+                                    <Package className="w-12 h-12 text-blue-500 opacity-20" />
+                                </div>
+                            </div>
+
+                            <div className="bg-white rounded-xl shadow-md p-6 border-l-4 border-green-500">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <p className="text-sm font-medium text-slate-600">총 거래금액</p>
+                                        <p className="text-2xl font-bold text-slate-800 mt-1">{formatNumber(stats.totalAmount / 100000000)}억원</p>
+                                    </div>
+                                    <DollarSign className="w-12 h-12 text-green-500 opacity-20" />
+                                </div>
+                            </div>
+
+                            <div className="bg-white rounded-xl shadow-md p-6 border-l-4 border-purple-500">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <p className="text-sm font-medium text-slate-600">총 수수료</p>
+                                        <p className="text-2xl font-bold text-slate-800 mt-1">{formatNumber(stats.totalFee / 100000000)}억원</p>
+                                    </div>
+                                    <TrendingUp className="w-12 h-12 text-purple-500 opacity-20" />
+                                </div>
+                            </div>
+
+                            <div className="bg-white rounded-xl shadow-md p-6 border-l-4 border-orange-500">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <p className="text-sm font-medium text-slate-600">월평균 거래량</p>
+                                        <p className="text-2xl font-bold text-slate-800 mt-1">{formatNumber(stats.avgMonthlyVolume / 1000)}톤</p>
+                                    </div>
+                                    <Calendar className="w-12 h-12 text-orange-500 opacity-20" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                            <div className="bg-white rounded-xl shadow-md p-6">
+                                <h2 className="text-xl font-bold text-slate-800 mb-4">년도별 거래량 (천톤)</h2>
+                                <ResponsiveContainer width="100%" height={350}>
+                                    <BarChart data={yearlyData}>
+                                        <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                                        <XAxis dataKey="year" />
+                                        <YAxis />
+                                        <Tooltip formatter={(value) => formatNumber(value)} />
+                                        <Legend />
+                                        <Bar dataKey="채소물량" fill="#10b981" name="채소" />
+                                        <Bar dataKey="과일물량" fill="#f59e0b" name="과일" />
+                                    </BarChart>
+                                </ResponsiveContainer>
+                            </div>
+
+                            <div className="bg-white rounded-xl shadow-md p-6">
+                                <h2 className="text-xl font-bold text-slate-800 mb-4">년도별 거래금액 (억원)</h2>
+                                <ResponsiveContainer width="100%" height={350}>
+                                    <BarChart data={yearlyData}>
+                                        <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                                        <XAxis dataKey="year" />
+                                        <YAxis />
+                                        <Tooltip formatter={(value) => formatNumber(value)} />
+                                        <Legend />
+                                        <Bar dataKey="채소금액" fill="#10b981" name="채소" />
+                                        <Bar dataKey="과일금액" fill="#f59e0b" name="과일" />
+                                    </BarChart>
+                                </ResponsiveContainer>
+                            </div>
+                        </div>
+
+                        <div className="bg-white rounded-xl shadow-md p-6 mb-6">
+                            <h2 className="text-xl font-bold text-slate-800 mb-4">년도별 총 수수료</h2>
+                            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                                {yearlyData.map(d => (
+                                    <div key={d.year} className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-4 text-center">
+                                        <p className="text-sm font-medium text-purple-700">{d.year}년</p>
+                                        <p className="text-xl font-bold text-purple-900 mt-1">{formatNumber(d.총수수료)}억원</p>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div className="bg-white rounded-xl shadow-md p-6 mb-6">
+                            <h2 className="text-xl font-bold text-slate-800 mb-4">월별 거래량 추이 (톤)</h2>
+                            <ResponsiveContainer width="100%" height={350}>
+                                <LineChart data={chartData}>
+                                    <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                                    <XAxis dataKey="month" tick={{fontSize: 11}} />
+                                    <YAxis tick={{fontSize: 12}} />
+                                    <Tooltip formatter={(value) => formatNumber(value)} />
+                                    <Legend />
+                                    {selectedCategory === '합계' && (
+                                        <>
+                                            <Line type="monotone" dataKey="채소물량" stroke="#10b981" strokeWidth={2} dot={false} />
+                                            <Line type="monotone" dataKey="과일물량" stroke="#f59e0b" strokeWidth={2} dot={false} />
+                                        </>
+                                    )}
+                                    <Line type="monotone" dataKey={`${selectedCategory === '합계' ? '합계' : selectedCategory}물량`} stroke="#3b82f6" strokeWidth={3} dot={{r: 4}} />
+                                </LineChart>
+                            </ResponsiveContainer>
+                        </div>
+
+                        <div className="bg-white rounded-xl shadow-md p-6 mb-6">
+                            <h2 className="text-xl font-bold text-slate-800 mb-4">월별 거래금액 추이 (억원)</h2>
+                            <ResponsiveContainer width="100%" height={350}>
+                                <ComposedChart data={chartData}>
+                                    <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                                    <XAxis dataKey="month" tick={{fontSize: 11}} />
+                                    <YAxis tick={{fontSize: 12}} />
+                                    <Tooltip formatter={(value) => formatNumber(value)} />
+                                    <Legend />
+                                    {selectedCategory === '합계' ? (
+                                        <>
+                                            <Bar dataKey="채소금액" fill="#10b981" stackId="a" />
+                                            <Bar dataKey="과일금액" fill="#f59e0b" stackId="a" />
+                                            <Line type="monotone" dataKey="합계금액" stroke="#3b82f6" strokeWidth={3} dot={{r: 4}} />
+                                        </>
+                                    ) : (
+                                        <Bar dataKey={`${selectedCategory}금액`} fill="#3b82f6" />
+                                    )}
+                                </ComposedChart>
+                            </ResponsiveContainer>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        // Wait for all libraries to load
+        if (typeof Recharts !== 'undefined') {
+            ReactDOM.render(<TradeDashboard />, document.getElementById('root'));
+        } else {
+            console.error('Recharts library failed to load');
+        }
+    </script>
+</body>
+</html>
