@@ -256,9 +256,9 @@
             <div class="control-group">
                 <label for="metricFilter">지표</label>
                 <select id="metricFilter">
-                    <option value="amount">물량 (kg)</option>
-                    <option value="value">금액 (원)</option>
-                    <option value="fee">수수료 (원)</option>
+                    <option value="amount">물량 (톤)</option>
+                    <option value="value">금액 (억원)</option>
+                    <option value="fee">수수료 (억원)</option>
                 </select>
             </div>
         </div>
@@ -272,30 +272,16 @@
 
         <div class="dashboard">
             <div class="card">
-                <h3>월별 거래량 추이</h3>
+                <h3 id="monthlyChartTitle">월별 거래량 추이</h3>
                 <div class="chart-container">
                     <canvas id="monthlyChart"></canvas>
                 </div>
             </div>
 
             <div class="card">
-                <h3>연도별 비교</h3>
+                <h3 id="yearlyChartTitle">연도별 비교</h3>
                 <div class="chart-container">
                     <canvas id="yearlyChart"></canvas>
-                </div>
-            </div>
-
-            <div class="card">
-                <h3>카테고리별 분포</h3>
-                <div class="chart-container">
-                    <canvas id="categoryChart"></canvas>
-                </div>
-            </div>
-
-            <div class="card">
-                <h3>지표별 상관관계</h3>
-                <div class="chart-container">
-                    <canvas id="correlationChart"></canvas>
                 </div>
             </div>
         </div>
@@ -307,15 +293,15 @@
                     <thead>
                         <tr>
                             <th>날짜</th>
-                            <th>채소 물량</th>
-                            <th>채소 금액</th>
-                            <th>채소 수수료</th>
-                            <th>과일 물량</th>
-                            <th>과일 금액</th>
-                            <th>과일 수수료</th>
-                            <th>총 물량</th>
-                            <th>총 금액</th>
-                            <th>총 수수료</th>
+                            <th>채소 물량(톤)</th>
+                            <th>채소 금액(억원)</th>
+                            <th>채소 수수료(억원)</th>
+                            <th>과일 물량(톤)</th>
+                            <th>과일 금액(억원)</th>
+                            <th>과일 수수료(억원)</th>
+                            <th>총 물량(톤)</th>
+                            <th>총 금액(억원)</th>
+                            <th>총 수수료(억원)</th>
                         </tr>
                     </thead>
                     <tbody id="dataTableBody">
@@ -390,9 +376,9 @@
         // 숫자 포맷팅 함수
         function formatNumber(num, type = 'number') {
             if (type === 'currency') {
-                return new Intl.NumberFormat('ko-KR').format(num) + '원';
+                return (num / 100000000).toFixed(1) + '억원';
             } else if (type === 'amount') {
-                return new Intl.NumberFormat('ko-KR').format(num) + 'kg';
+                return (num / 1000).toFixed(1) + '톤';
             } else {
                 return new Intl.NumberFormat('ko-KR').format(num);
             }
@@ -415,22 +401,29 @@
         }
 
         // 차트 생성
-        function createCharts(data) {
-            // 월별 거래량 추이 차트
+        function createCharts(data, metricType = 'amount') {
+            const metricLabel = metricType === 'amount' ? '물량' : (metricType === 'value' ? '금액' : '수수료');
+            const formatType = metricType === 'amount' ? 'amount' : 'currency';
+            
+            // 차트 제목 업데이트
+            document.getElementById('monthlyChartTitle').textContent = `월별 거래${metricLabel} 추이`;
+            document.getElementById('yearlyChartTitle').textContent = `연도별 거래${metricLabel} 비교`;
+            
+            // 월별 추이 차트
             const monthlyCtx = document.getElementById('monthlyChart').getContext('2d');
             new Chart(monthlyCtx, {
                 type: 'line',
                 data: {
                     labels: data.map(item => item.date),
                     datasets: [{
-                        label: '채소 물량',
-                        data: data.map(item => item.vegetable.amount),
+                        label: `채소 ${metricLabel}`,
+                        data: data.map(item => item.vegetable[metricType]),
                         borderColor: '#4CAF50',
                         backgroundColor: 'rgba(76, 175, 80, 0.1)',
                         tension: 0.4
                     }, {
-                        label: '과일 물량',
-                        data: data.map(item => item.fruit.amount),
+                        label: `과일 ${metricLabel}`,
+                        data: data.map(item => item.fruit[metricType]),
                         borderColor: '#FF9800',
                         backgroundColor: 'rgba(255, 152, 0, 0.1)',
                         tension: 0.4
@@ -449,7 +442,7 @@
                             beginAtZero: true,
                             ticks: {
                                 callback: function(value) {
-                                    return formatNumber(value, 'amount');
+                                    return formatNumber(value, formatType);
                                 }
                             }
                         }
@@ -457,16 +450,15 @@
                 }
             });
 
-            // 연도별 비교 차트
+            // 연도별 비교 차트 (채소/과일 분리)
             const yearlyData = {};
             data.forEach(item => {
                 const year = item.date.split('.')[0];
                 if (!yearlyData[year]) {
-                    yearlyData[year] = { amount: 0, value: 0, fee: 0 };
+                    yearlyData[year] = { vegetable: 0, fruit: 0 };
                 }
-                yearlyData[year].amount += item.total.amount;
-                yearlyData[year].value += item.total.value;
-                yearlyData[year].fee += item.total.fee;
+                yearlyData[year].vegetable += item.vegetable[metricType];
+                yearlyData[year].fruit += item.fruit[metricType];
             });
 
             const yearlyCtx = document.getElementById('yearlyChart').getContext('2d');
@@ -475,10 +467,16 @@
                 data: {
                     labels: Object.keys(yearlyData),
                     datasets: [{
-                        label: '총 물량',
-                        data: Object.values(yearlyData).map(item => item.amount),
-                        backgroundColor: '#667eea',
-                        borderColor: '#667eea',
+                        label: '채소',
+                        data: Object.values(yearlyData).map(item => item.vegetable),
+                        backgroundColor: '#4CAF50',
+                        borderColor: '#4CAF50',
+                        borderWidth: 1
+                    }, {
+                        label: '과일',
+                        data: Object.values(yearlyData).map(item => item.fruit),
+                        backgroundColor: '#FF9800',
+                        borderColor: '#FF9800',
                         borderWidth: 1
                     }]
                 },
@@ -487,7 +485,7 @@
                     maintainAspectRatio: false,
                     plugins: {
                         legend: {
-                            display: false
+                            position: 'top'
                         }
                     },
                     scales: {
@@ -495,84 +493,7 @@
                             beginAtZero: true,
                             ticks: {
                                 callback: function(value) {
-                                    return formatNumber(value, 'amount');
-                                }
-                            }
-                        }
-                    }
-                }
-            });
-
-            // 카테고리별 분포 차트
-            const categoryCtx = document.getElementById('categoryChart').getContext('2d');
-            const totalVegetableAmount = data.reduce((sum, item) => sum + item.vegetable.amount, 0);
-            const totalFruitAmount = data.reduce((sum, item) => sum + item.fruit.amount, 0);
-            
-            new Chart(categoryCtx, {
-                type: 'doughnut',
-                data: {
-                    labels: ['채소', '과일'],
-                    datasets: [{
-                        data: [totalVegetableAmount, totalFruitAmount],
-                        backgroundColor: ['#4CAF50', '#FF9800'],
-                        borderWidth: 2,
-                        borderColor: '#fff'
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'bottom'
-                        }
-                    }
-                }
-            });
-
-            // 지표별 상관관계 차트
-            const correlationCtx = document.getElementById('correlationChart').getContext('2d');
-            new Chart(correlationCtx, {
-                type: 'scatter',
-                data: {
-                    datasets: [{
-                        label: '물량 vs 금액',
-                        data: data.map(item => ({
-                            x: item.total.amount,
-                            y: item.total.value
-                        })),
-                        backgroundColor: '#667eea',
-                        borderColor: '#667eea'
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            display: false
-                        }
-                    },
-                    scales: {
-                        x: {
-                            title: {
-                                display: true,
-                                text: '물량 (kg)'
-                            },
-                            ticks: {
-                                callback: function(value) {
-                                    return formatNumber(value, 'amount');
-                                }
-                            }
-                        },
-                        y: {
-                            title: {
-                                display: true,
-                                text: '금액 (원)'
-                            },
-                            ticks: {
-                                callback: function(value) {
-                                    return formatNumber(value, 'currency');
+                                    return formatNumber(value, formatType);
                                 }
                             }
                         }
@@ -639,20 +560,22 @@
                 filteredData = filteredData.filter(item => item.date.startsWith(yearFilter));
             }
             
-            // 필터링된 데이터로 차트 업데이트
-            updateCharts(filteredData);
+            // 필터링된 데이터로 통계 및 차트 업데이트
+            const stats = calculateStats(filteredData);
+            createStatsCards(stats);
+            updateCharts(filteredData, metricFilter);
             createTable(filteredData);
         }
 
         // 차트 업데이트
-        function updateCharts(data) {
+        function updateCharts(data, metricType = 'amount') {
             // 기존 차트 제거
             Chart.helpers.each(Chart.instances, function(instance) {
                 instance.destroy();
             });
             
             // 새 차트 생성
-            createCharts(data);
+            createCharts(data, metricType);
         }
 
         // 연도 필터 옵션 생성
@@ -675,7 +598,7 @@
             
             // UI 생성
             createStatsCards(stats);
-            createCharts(data);
+            createCharts(data, 'amount'); // 기본값은 물량
             createTable(data);
             populateYearFilter(data);
             
