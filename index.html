@@ -3,42 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>대전중앙청과 거래실적 대시보드</title>
+    <title>중앙청과 거래실적 대시보드</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        body { 
-            margin: 0; 
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-        }
-        #loading {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            font-size: 24px;
-            color: #64748b;
-        }
-    </style>
 </head>
 <body>
-    <div id="loading">데이터 로딩 중...</div>
     <div id="root"></div>
 
-    <!-- React 및 필수 라이브러리 -->
+    <!-- 라이브러리 순서대로 로드 -->
     <script crossorigin src="https://unpkg.com/react@18.2.0/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
-    
-    <!-- Recharts -->
     <script src="https://unpkg.com/recharts@2.5.0/dist/Recharts.js"></script>
-    
-    <!-- Babel Standalone -->
     <script src="https://unpkg.com/@babel/standalone@7.23.5/babel.min.js"></script>
 
     <script type="text/babel">
-        const { useState, useMemo, useEffect } = React;
+        const { useState, useMemo } = React;
         const { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ComposedChart } = Recharts;
 
-        // Lucide Icons as SVG components
         const Package = ({ className }) => (
             <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
@@ -63,12 +43,6 @@
         function TradeDashboard() {
             const [selectedYear, setSelectedYear] = useState('전체');
             const [selectedCategory, setSelectedCategory] = useState('합계');
-            
-            useEffect(() => {
-                // 로딩 화면 숨기기
-                const loadingEl = document.getElementById('loading');
-                if (loadingEl) loadingEl.style.display = 'none';
-            }, []);
             
             const rawData = [
                 { month: "2021. 1.", vegetable_volume: 4034380, vegetable_amount: 7858548190, vegetable_fee: 433909640, fruit_volume: 1656035, fruit_amount: 6036393568, fruit_fee: 359744740, total_volume: 5690415, total_amount: 13894941758, total_fee: 793654380 },
@@ -137,16 +111,7 @@
                 rawData.forEach(d => {
                     const year = d.month.split('.')[0].trim();
                     if (!grouped[year]) {
-                        grouped[year] = {
-                            year,
-                            total_volume: 0,
-                            total_amount: 0,
-                            total_fee: 0,
-                            vegetable_volume: 0,
-                            vegetable_amount: 0,
-                            fruit_volume: 0,
-                            fruit_amount: 0
-                        };
+                        grouped[year] = { year, total_volume: 0, total_amount: 0, total_fee: 0, vegetable_volume: 0, vegetable_amount: 0, fruit_volume: 0, fruit_amount: 0 };
                     }
                     grouped[year].total_volume += d.total_volume;
                     grouped[year].total_amount += d.total_amount;
@@ -178,13 +143,7 @@
                 const totalAmount = filteredData.reduce((sum, d) => sum + d.total_amount, 0);
                 const totalFee = filteredData.reduce((sum, d) => sum + d.total_fee, 0);
                 const avgMonthlyVolume = totalVolume / filteredData.length;
-                
-                return {
-                    totalVolume,
-                    totalAmount,
-                    totalFee,
-                    avgMonthlyVolume
-                };
+                return { totalVolume, totalAmount, totalFee, avgMonthlyVolume };
             }, [filteredData]);
 
             const chartData = useMemo(() => {
@@ -199,9 +158,7 @@
                 }));
             }, [filteredData]);
 
-            const formatNumber = (num) => {
-                return new Intl.NumberFormat('ko-KR').format(Math.round(num));
-            };
+            const formatNumber = (num) => new Intl.NumberFormat('ko-KR').format(Math.round(num));
 
             return (
                 <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-6">
@@ -215,23 +172,13 @@
                             <div className="flex flex-wrap gap-4 items-center">
                                 <div>
                                     <label className="text-sm font-medium text-slate-700 mb-2 block">연도 선택</label>
-                                    <select 
-                                        value={selectedYear}
-                                        onChange={(e) => setSelectedYear(e.target.value)}
-                                        className="px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                    >
-                                        {years.map(year => (
-                                            <option key={year} value={year}>{year}</option>
-                                        ))}
+                                    <select value={selectedYear} onChange={(e) => setSelectedYear(e.target.value)} className="px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                        {years.map(year => <option key={year} value={year}>{year}</option>)}
                                     </select>
                                 </div>
                                 <div>
                                     <label className="text-sm font-medium text-slate-700 mb-2 block">카테고리</label>
-                                    <select 
-                                        value={selectedCategory}
-                                        onChange={(e) => setSelectedCategory(e.target.value)}
-                                        className="px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                    >
+                                    <select value={selectedCategory} onChange={(e) => setSelectedCategory(e.target.value)} className="px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                                         <option value="합계">합계</option>
                                         <option value="채소">채소</option>
                                         <option value="과일">과일</option>
@@ -250,7 +197,6 @@
                                     <Package className="w-12 h-12 text-blue-500 opacity-20" />
                                 </div>
                             </div>
-
                             <div className="bg-white rounded-xl shadow-md p-6 border-l-4 border-green-500">
                                 <div className="flex items-center justify-between">
                                     <div>
@@ -260,7 +206,6 @@
                                     <DollarSign className="w-12 h-12 text-green-500 opacity-20" />
                                 </div>
                             </div>
-
                             <div className="bg-white rounded-xl shadow-md p-6 border-l-4 border-purple-500">
                                 <div className="flex items-center justify-between">
                                     <div>
@@ -270,7 +215,6 @@
                                     <TrendingUp className="w-12 h-12 text-purple-500 opacity-20" />
                                 </div>
                             </div>
-
                             <div className="bg-white rounded-xl shadow-md p-6 border-l-4 border-orange-500">
                                 <div className="flex items-center justify-between">
                                     <div>
@@ -372,14 +316,8 @@
             );
         }
 
-        // 모든 라이브러리 로딩 확인 후 렌더링
-        window.addEventListener('load', function() {
-            if (typeof Recharts !== 'undefined' && typeof React !== 'undefined') {
-                ReactDOM.render(<TradeDashboard />, document.getElementById('root'));
-            } else {
-                document.getElementById('loading').innerHTML = '라이브러리 로딩 실패. 페이지를 새로고침해주세요.';
-            }
-        });
+        // 렌더링
+        ReactDOM.render(<TradeDashboard />, document.getElementById('root'));
     </script>
 </body>
 </html>
