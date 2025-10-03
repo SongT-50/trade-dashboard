@@ -5,19 +5,37 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>중앙청과 거래실적 대시보드</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <script src="https://unpkg.com/recharts@2.5.0/dist/Recharts.js"></script>
     <style>
-        body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+        body { 
+            margin: 0; 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+        #loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            font-size: 24px;
+            color: #64748b;
+        }
     </style>
 </head>
 <body>
+    <div id="loading">데이터 로딩 중...</div>
     <div id="root"></div>
 
+    <!-- React 및 필수 라이브러리 -->
+    <script crossorigin src="https://unpkg.com/react@18.2.0/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
+    
+    <!-- Recharts -->
+    <script src="https://unpkg.com/recharts@2.5.0/dist/Recharts.js"></script>
+    
+    <!-- Babel Standalone -->
+    <script src="https://unpkg.com/@babel/standalone@7.23.5/babel.min.js"></script>
+
     <script type="text/babel">
-        const { useState, useMemo } = React;
+        const { useState, useMemo, useEffect } = React;
         const { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ComposedChart } = Recharts;
 
         // Lucide Icons as SVG components
@@ -45,6 +63,12 @@
         function TradeDashboard() {
             const [selectedYear, setSelectedYear] = useState('전체');
             const [selectedCategory, setSelectedCategory] = useState('합계');
+            
+            useEffect(() => {
+                // 로딩 화면 숨기기
+                const loadingEl = document.getElementById('loading');
+                if (loadingEl) loadingEl.style.display = 'none';
+            }, []);
             
             const rawData = [
                 { month: "2021. 1.", vegetable_volume: 4034380, vegetable_amount: 7858548190, vegetable_fee: 433909640, fruit_volume: 1656035, fruit_amount: 6036393568, fruit_fee: 359744740, total_volume: 5690415, total_amount: 13894941758, total_fee: 793654380 },
@@ -348,12 +372,14 @@
             );
         }
 
-        // Wait for all libraries to load
-        if (typeof Recharts !== 'undefined') {
-            ReactDOM.render(<TradeDashboard />, document.getElementById('root'));
-        } else {
-            console.error('Recharts library failed to load');
-        }
+        // 모든 라이브러리 로딩 확인 후 렌더링
+        window.addEventListener('load', function() {
+            if (typeof Recharts !== 'undefined' && typeof React !== 'undefined') {
+                ReactDOM.render(<TradeDashboard />, document.getElementById('root'));
+            } else {
+                document.getElementById('loading').innerHTML = '라이브러리 로딩 실패. 페이지를 새로고침해주세요.';
+            }
+        });
     </script>
 </body>
 </html>
