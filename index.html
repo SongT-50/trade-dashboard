@@ -436,7 +436,6 @@
                 <select id="metricFilter">
                     <option value="amount">물량 (톤)</option>
                     <option value="value">금액 (억원)</option>
-                    <option value="fee">수수료 (억원)</option>
                 </select>
             </div>
         </div>
@@ -482,13 +481,10 @@
                             <th>날짜</th>
                             <th>채소 물량(톤)</th>
                             <th>채소 금액(억원)</th>
-                            <th>채소 수수료(억원)</th>
                             <th>과일 물량(톤)</th>
                             <th>과일 금액(억원)</th>
-                            <th>과일 수수료(억원)</th>
                             <th>총 물량(톤)</th>
                             <th>총 금액(억원)</th>
-                            <th>총 수수료(억원)</th>
                         </tr>
                     </thead>
                     <tbody id="dataTableBody">
@@ -499,65 +495,65 @@
     </div>
 
     <script>
-        // 정확한 데이터 배열 (CSV 파일에서 직접 추출)
+        // 정확한 데이터 배열 (수수료 정보 제거)
         const data = [
-            { date: "2021. 1.", vegetable: { amount: 4034380, value: 7858548190, fee: 433909640 }, fruit: { amount: 1656035, value: 6036393568, fee: 359744740 }, total: { amount: 5690415, value: 13894941758, fee: 793654380 } },
-            { date: "2021. 2.", vegetable: { amount: 3749297, value: 7112035352, fee: 401564340 }, fruit: { amount: 1678142, value: 7110625972, fee: 424477102 }, total: { amount: 5427439, value: 14222661324, fee: 826041442 } },
-            { date: "2021. 3.", vegetable: { amount: 4891097, value: 8489906192, fee: 467452557 }, fruit: { amount: 1676819, value: 6051189104, fee: 359756638 }, total: { amount: 6567916, value: 14541095296, fee: 827209195 } },
-            { date: "2021. 4.", vegetable: { amount: 5309273, value: 7382544231, fee: 411016441 }, fruit: { amount: 1753983, value: 6090847410, fee: 362589801 }, total: { amount: 7063256, value: 13473391641, fee: 773606242 } },
-            { date: "2021. 5.", vegetable: { amount: 5571702, value: 6469509760, fee: 359964659 }, fruit: { amount: 2332857, value: 5656696241, fee: 337415045 }, total: { amount: 7904559, value: 12126206001, fee: 697379704 } },
-            { date: "2021. 6.", vegetable: { amount: 5535296, value: 5892506857, fee: 320429908 }, fruit: { amount: 2561580, value: 5828470482, fee: 349798599 }, total: { amount: 8096876, value: 11720977339, fee: 670228507 } },
-            { date: "2021. 7.", vegetable: { amount: 4822086, value: 5192298807, fee: 277218984 }, fruit: { amount: 2767505, value: 6170066407, fee: 369310330 }, total: { amount: 7589591, value: 11362365214, fee: 646529314 } },
-            { date: "2021. 8.", vegetable: { amount: 5095433, value: 6309876705, fee: 338246922 }, fruit: { amount: 2163639, value: 6397259362, fee: 383308762 }, total: { amount: 7259072, value: 12707136067, fee: 721555684 } },
-            { date: "2021. 9.", vegetable: { amount: 5059020, value: 7796196042, fee: 423984859 }, fruit: { amount: 2481592, value: 9052768778, fee: 547339866 }, total: { amount: 7540612, value: 16848964820, fee: 971324725 } },
-            { date: "2021. 10.", vegetable: { amount: 4610122, value: 6432167097, fee: 349345052 }, fruit: { amount: 1813818, value: 4832089539, fee: 291705935 }, total: { amount: 6423940, value: 11264256636, fee: 641050987 } },
-            { date: "2021. 11.", vegetable: { amount: 6355999, value: 8430969450, fee: 473632495 }, fruit: { amount: 1838025, value: 4946033790, fee: 299554714 }, total: { amount: 8194024, value: 13377003240, fee: 773187209 } },
-            { date: "2021. 12.", vegetable: { amount: 4398852, value: 6097763764, fee: 336194038 }, fruit: { amount: 1653050, value: 5431473059, fee: 324758878 }, total: { amount: 6051902, value: 11529236823, fee: 660952916 } },
-            { date: "2022. 1.", vegetable: { amount: 4053631, value: 6953988823, fee: 381531891 }, fruit: { amount: 2285082, value: 9117272109, fee: 547205764 }, total: { amount: 6338713, value: 16071260932, fee: 928737655 } },
-            { date: "2022. 2.", vegetable: { amount: 3493359, value: 5012435265, fee: 276457959 }, fruit: { amount: 1039524, value: 3848937867, fee: 228944088 }, total: { amount: 4532883, value: 8861373132, fee: 505402047 } },
-            { date: "2022. 3.", vegetable: { amount: 4694499, value: 6746375339, fee: 367885208 }, fruit: { amount: 1439822, value: 5596295983, fee: 333976792 }, total: { amount: 6134321, value: 12342671322, fee: 701862000 } },
-            { date: "2022. 4.", vegetable: { amount: 4787061, value: 6640419875, fee: 363916260 }, fruit: { amount: 1611841, value: 5917522620, fee: 353000401 }, total: { amount: 6398902, value: 12557942495, fee: 716916661 } },
-            { date: "2022. 5.", vegetable: { amount: 5427396, value: 6961711498, fee: 388461798 }, fruit: { amount: 2210109, value: 5942183385, fee: 355455214 }, total: { amount: 7637505, value: 12903894883, fee: 743917012 } },
-            { date: "2022. 6.", vegetable: { amount: 5249094, value: 7254304873, fee: 398892940 }, fruit: { amount: 2598730, value: 5760633450, fee: 346119165 }, total: { amount: 7847824, value: 13014938323, fee: 745012105 } },
-            { date: "2022. 7.", vegetable: { amount: 4152713, value: 7139290224, fee: 390309910 }, fruit: { amount: 2504125, value: 5912434181, fee: 354277090 }, total: { amount: 6656838, value: 13051724405, fee: 744587000 } },
-            { date: "2022. 8.", vegetable: { amount: 4445984, value: 8134809218, fee: 453951961 }, fruit: { amount: 2262613, value: 7394148600, fee: 444664263 }, total: { amount: 6708597, value: 15528957818, fee: 898616224 } },
-            { date: "2022. 9.", vegetable: { amount: 4295778, value: 8689757643, fee: 482867851 }, fruit: { amount: 2077195, value: 7634006075, fee: 461155769 }, total: { amount: 6372973, value: 16323763718, fee: 944023620 } },
-            { date: "2022. 10.", vegetable: { amount: 4917296, value: 7521886628, fee: 422613464 }, fruit: { amount: 1919816, value: 4830241979, fee: 291577520 }, total: { amount: 6837112, value: 12352128607, fee: 714190984 } },
-            { date: "2022. 11.", vegetable: { amount: 6009228, value: 7023723903, fee: 397579767 }, fruit: { amount: 1848776, value: 4337560236, fee: 262000613 }, total: { amount: 7858004, value: 11361284139, fee: 659580380 } },
-            { date: "2022. 12.", vegetable: { amount: 3884356, value: 6338406790, fee: 350286384 }, fruit: { amount: 1718193, value: 5565947730, fee: 331821412 }, total: { amount: 5602549, value: 11904354520, fee: 682107796 } },
-            { date: "2023. 1.", vegetable: { amount: 3332758, value: 6478793288, fee: 356921142 }, fruit: { amount: 2174554, value: 7750431528, fee: 465285061 }, total: { amount: 5507312, value: 14229224816, fee: 822206203 } },
-            { date: "2023. 2.", vegetable: { amount: 3577267, value: 6926118333, fee: 385075533 }, fruit: { amount: 1286059, value: 4908845650, fee: 292074794 }, total: { amount: 4863326, value: 11834963983, fee: 677150327 } },
-            { date: "2023. 3.", vegetable: { amount: 4423753, value: 8221114230, fee: 453066520 }, fruit: { amount: 1501961, value: 6142062468, fee: 366754169 }, total: { amount: 5925714, value: 14363176698, fee: 819820689 } },
-            { date: "2023. 4.", vegetable: { amount: 4429239, value: 7152336090, fee: 400016591 }, fruit: { amount: 1509025, value: 5427211486, fee: 323549922 }, total: { amount: 5938264, value: 12579547576, fee: 723566513 } },
-            { date: "2023. 5.", vegetable: { amount: 5698933, value: 8378307513, fee: 473317380 }, fruit: { amount: 2155758, value: 5930969449, fee: 355135450 }, total: { amount: 7854691, value: 14309276962, fee: 828452830 } },
-            { date: "2023. 6.", vegetable: { amount: 5596280, value: 7140762095, fee: 399810731 }, fruit: { amount: 2696350, value: 6921329989, fee: 415017319 }, total: { amount: 8292630, value: 14062092084, fee: 814828050 } },
-            { date: "2023. 7.", vegetable: { amount: 4267318, value: 6204446385, fee: 339871480 }, fruit: { amount: 2474516, value: 5932390225, fee: 354752939 }, total: { amount: 6741834, value: 1213836610, fee: 694624419 } },
-            { date: "2023. 8.", vegetable: { amount: 4364714, value: 7417263397, fee: 410267697 }, fruit: { amount: 1809969, value: 7929863400, fee: 474993371 }, total: { amount: 6174683, value: 15347126797, fee: 885261068 } },
-            { date: "2023. 9.", vegetable: { amount: 4909131, value: 8349455654, fee: 464501839 }, fruit: { amount: 2174767, value: 10039103360, fee: 607010048 }, total: { amount: 7083898, value: 18388559014, fee: 1071511887 } },
-            { date: "2023. 10.", vegetable: { amount: 5046964, value: 7768429438, fee: 436248340 }, fruit: { amount: 1763908, value: 5601316893, fee: 336736791 }, total: { amount: 6810872, value: 13369746331, fee: 772985131 } },
-            { date: "2023. 11.", vegetable: { amount: 5883993, value: 7945537016, fee: 452911925 }, fruit: { amount: 1842743, value: 5844353500, fee: 350929786 }, total: { amount: 7726736, value: 13789890516, fee: 803841711 } },
-            { date: "2023. 12.", vegetable: { amount: 3751972, value: 6657622976, fee: 378065243 }, fruit: { amount: 1554813, value: 6615147000, fee: 394715273 }, total: { amount: 5306785, value: 13272769976, fee: 772780516 } },
-            { date: "2024. 1.", vegetable: { amount: 3703066, value: 7334979112, fee: 412147254 }, fruit: { amount: 1782654, value: 10073356500, fee: 601319592 }, total: { amount: 5485720, value: 17408335612, fee: 1013466846 } },
-            { date: "2024. 2.", vegetable: { amount: 3335168, value: 7338402214, fee: 405952431 }, fruit: { amount: 1189968, value: 7512662283, fee: 447881902 }, total: { amount: 4525136, value: 14851064497, fee: 853834333 } },
-            { date: "2024. 3.", vegetable: { amount: 3995114, value: 9145302170, fee: 508780124 }, fruit: { amount: 1214316, value: 6559611700, fee: 390173330 }, total: { amount: 5209430, value: 15704913870, fee: 898953454 } },
-            { date: "2024. 4.", vegetable: { amount: 4846635, value: 9011948551, fee: 510460870 }, fruit: { amount: 1360687, value: 6624206935, fee: 394176751 }, total: { amount: 6207322, value: 15636155486, fee: 904637621 } },
-            { date: "2024. 5.", vegetable: { amount: 5964111, value: 8883445838, fee: 506786298 }, fruit: { amount: 2030190, value: 6929520735, fee: 413664928 }, total: { amount: 7994301, value: 15812966573, fee: 920451226 } },
-            { date: "2024. 6.", vegetable: { amount: 5393020, value: 6289113865, fee: 352511153 }, fruit: { amount: 2805632, value: 6330509491, fee: 379479481 }, total: { amount: 8198652, value: 12619623356, fee: 731990634 } },
-            { date: "2024. 7.", vegetable: { amount: 4412396, value: 6469293475, fee: 361179888 }, fruit: { amount: 2586243, value: 5881850700, fee: 355084782 }, total: { amount: 6998639, value: 12351144175, fee: 716264670 } },
-            { date: "2024. 8.", vegetable: { amount: 4289095, value: 7933336206, fee: 446630014 }, fruit: { amount: 2233418, value: 7711159692, fee: 463047485 }, total: { amount: 6522513, value: 15644495898, fee: 909677499 } },
-            { date: "2024. 9.", vegetable: { amount: 4223295, value: 8905688126, fee: 503328542 }, fruit: { amount: 2239258, value: 9472988475, fee: 570080303 }, total: { amount: 6462553, value: 18378676601, fee: 1073408845 } },
-            { date: "2024. 10.", vegetable: { amount: 4693436, value: 8730870254, fee: 492983507 }, fruit: { amount: 1673283, value: 5257992080, fee: 312616728 }, total: { amount: 6366719, value: 13988862334, fee: 805600235 } },
-            { date: "2024. 11.", vegetable: { amount: 6487581, value: 9534419786, fee: 554062114 }, fruit: { amount: 1786916, value: 5312287675, fee: 315912764 }, total: { amount: 8274497, value: 14846707461, fee: 869974878 } },
-            { date: "2024. 12.", vegetable: { amount: 4362143, value: 7538381787, fee: 433680954 }, fruit: { amount: 1882226, value: 7590445844, fee: 451071404 }, total: { amount: 6244369, value: 15128827631, fee: 884752358 } },
-            { date: "2025. 1", vegetable: { amount: 3540767, value: 7406716420, fee: 420563639 }, fruit: { amount: 2156793, value: 11686038655, fee: 698263689 }, total: { amount: 5697560, value: 19092755075, fee: 1118827328 } },
-            { date: "2025. 2", vegetable: { amount: 3576475, value: 7465169716, fee: 426068106 }, fruit: { amount: 1136404, value: 5681893458, fee: 337585889 }, total: { amount: 4712879, value: 13147063174, fee: 763653995 } },
-            { date: "2025. 3", vegetable: { amount: 4398717, value: 8940143225, fee: 511426514 }, fruit: { amount: 1459274, value: 6697029500, fee: 399451155 }, total: { amount: 5857991, value: 15637172725, fee: 910877669 } },
-            { date: "2025. 4", vegetable: { amount: 4718655, value: 7964873170, fee: 446938449 }, fruit: { amount: 1661094, value: 6618218900, fee: 394572601 }, total: { amount: 6379749, value: 14583092070, fee: 841511050 } },
-            { date: "2025. 5", vegetable: { amount: 5080904, value: 7371024343, fee: 405691779 }, fruit: { amount: 2104339, value: 6148164187, fee: 366438701 }, total: { amount: 7185243, value: 13519188530, fee: 772130480 } },
-            { date: "2025. 6", vegetable: { amount: 4708690, value: 5895319380, fee: 322169261 }, fruit: { amount: 2558760, value: 6263072578, fee: 374319958 }, total: { amount: 7267450, value: 12158391958, fee: 696489219 } },
-            { date: "2025. 7", vegetable: { amount: 4054275, value: 6192238026, fee: 372824942 }, fruit: { amount: 2537879, value: 7697516899, fee: 536400961 }, total: { amount: 6592154, value: 13889754925, fee: 909225903 } },
-            { date: "2025. 8", vegetable: { amount: 3786564, value: 6609853433, fee: 402369143 }, fruit: { amount: 2063520, value: 7082081480, fee: 494363909 }, total: { amount: 5850084, value: 13691934913, fee: 896733052 } },
-            { date: "2025. 9", vegetable: { amount: 5218378, value: 8352681098, fee: 522389396 }, fruit: { amount: 2438502, value: 10018312635, fee: 699196868 }, total: { amount: 7656880, value: 18370993733, fee: 1221586264 } }
+            { date: "2021. 1.", vegetable: { amount: 4034380, value: 7858548190 }, fruit: { amount: 1656035, value: 6036393568 }, total: { amount: 5690415, value: 13894941758 } },
+            { date: "2021. 2.", vegetable: { amount: 3749297, value: 7112035352 }, fruit: { amount: 1678142, value: 7110625972 }, total: { amount: 5427439, value: 14222661324 } },
+            { date: "2021. 3.", vegetable: { amount: 4891097, value: 8489906192 }, fruit: { amount: 1676819, value: 6051189104 }, total: { amount: 6567916, value: 14541095296 } },
+            { date: "2021. 4.", vegetable: { amount: 5309273, value: 7382544231 }, fruit: { amount: 1753983, value: 6090847410 }, total: { amount: 7063256, value: 13473391641 } },
+            { date: "2021. 5.", vegetable: { amount: 5571702, value: 6469509760 }, fruit: { amount: 2332857, value: 5656696241 }, total: { amount: 7904559, value: 12126206001 } },
+            { date: "2021. 6.", vegetable: { amount: 5535296, value: 5892506857 }, fruit: { amount: 2561580, value: 5828470482 }, total: { amount: 8096876, value: 11720977339 } },
+            { date: "2021. 7.", vegetable: { amount: 4822086, value: 5192298807 }, fruit: { amount: 2767505, value: 6170066407 }, total: { amount: 7589591, value: 11362365214 } },
+            { date: "2021. 8.", vegetable: { amount: 5095433, value: 6309876705 }, fruit: { amount: 2163639, value: 6397259362 }, total: { amount: 7259072, value: 12707136067 } },
+            { date: "2021. 9.", vegetable: { amount: 5059020, value: 7796196042 }, fruit: { amount: 2481592, value: 9052768778 }, total: { amount: 7540612, value: 16848964820 } },
+            { date: "2021. 10.", vegetable: { amount: 4610122, value: 6432167097 }, fruit: { amount: 1813818, value: 4832089539 }, total: { amount: 6423940, value: 11264256636 } },
+            { date: "2021. 11.", vegetable: { amount: 6355999, value: 8430969450 }, fruit: { amount: 1838025, value: 4946033790 }, total: { amount: 8194024, value: 13377003240 } },
+            { date: "2021. 12.", vegetable: { amount: 4398852, value: 6097763764 }, fruit: { amount: 1653050, value: 5431473059 }, total: { amount: 6051902, value: 11529236823 } },
+            { date: "2022. 1.", vegetable: { amount: 4053631, value: 6953988823 }, fruit: { amount: 2285082, value: 9117272109 }, total: { amount: 6338713, value: 16071260932 } },
+            { date: "2022. 2.", vegetable: { amount: 3493359, value: 5012435265 }, fruit: { amount: 1039524, value: 3848937867 }, total: { amount: 4532883, value: 8861373132 } },
+            { date: "2022. 3.", vegetable: { amount: 4694499, value: 6746375339 }, fruit: { amount: 1439822, value: 5596295983 }, total: { amount: 6134321, value: 12342671322 } },
+            { date: "2022. 4.", vegetable: { amount: 4787061, value: 6640419875 }, fruit: { amount: 1611841, value: 5917522620 }, total: { amount: 6398902, value: 12557942495 } },
+            { date: "2022. 5.", vegetable: { amount: 5427396, value: 6961711498 }, fruit: { amount: 2210109, value: 5942183385 }, total: { amount: 7637505, value: 12903894883 } },
+            { date: "2022. 6.", vegetable: { amount: 5249094, value: 7254304873 }, fruit: { amount: 2598730, value: 5760633450 }, total: { amount: 7847824, value: 13014938323 } },
+            { date: "2022. 7.", vegetable: { amount: 4152713, value: 7139290224 }, fruit: { amount: 2504125, value: 5912434181 }, total: { amount: 6656838, value: 13051724405 } },
+            { date: "2022. 8.", vegetable: { amount: 4445984, value: 8134809218 }, fruit: { amount: 2262613, value: 7394148600 }, total: { amount: 6708597, value: 15528957818 } },
+            { date: "2022. 9.", vegetable: { amount: 4295778, value: 8689757643 }, fruit: { amount: 2077195, value: 7634006075 }, total: { amount: 6372973, value: 16323763718 } },
+            { date: "2022. 10.", vegetable: { amount: 4917296, value: 7521886628 }, fruit: { amount: 1919816, value: 4830241979 }, total: { amount: 6837112, value: 12352128607 } },
+            { date: "2022. 11.", vegetable: { amount: 6009228, value: 7023723903 }, fruit: { amount: 1848776, value: 4337560236 }, total: { amount: 7858004, value: 11361284139 } },
+            { date: "2022. 12.", vegetable: { amount: 3884356, value: 6338406790 }, fruit: { amount: 1718193, value: 5565947730 }, total: { amount: 5602549, value: 11904354520 } },
+            { date: "2023. 1.", vegetable: { amount: 3332758, value: 6478793288 }, fruit: { amount: 2174554, value: 7750431528 }, total: { amount: 5507312, value: 14229224816 } },
+            { date: "2023. 2.", vegetable: { amount: 3577267, value: 6926118333 }, fruit: { amount: 1286059, value: 4908845650 }, total: { amount: 4863326, value: 11834963983 } },
+            { date: "2023. 3.", vegetable: { amount: 4423753, value: 8221114230 }, fruit: { amount: 1501961, value: 6142062468 }, total: { amount: 5925714, value: 14363176698 } },
+            { date: "2023. 4.", vegetable: { amount: 4429239, value: 7152336090 }, fruit: { amount: 1509025, value: 5427211486 }, total: { amount: 5938264, value: 12579547576 } },
+            { date: "2023. 5.", vegetable: { amount: 5698933, value: 8378307513 }, fruit: { amount: 2155758, value: 5930969449 }, total: { amount: 7854691, value: 14309276962 } },
+            { date: "2023. 6.", vegetable: { amount: 5596280, value: 7140762095 }, fruit: { amount: 2696350, value: 6921329989 }, total: { amount: 8292630, value: 14062092084 } },
+            { date: "2023. 7.", vegetable: { amount: 4267318, value: 6204446385 }, fruit: { amount: 2474516, value: 5932390225 }, total: { amount: 6741834, value: 1213836610 } },
+            { date: "2023. 8.", vegetable: { amount: 4364714, value: 7417263397 }, fruit: { amount: 1809969, value: 7929863400 }, total: { amount: 6174683, value: 15347126797 } },
+            { date: "2023. 9.", vegetable: { amount: 4909131, value: 8349455654 }, fruit: { amount: 2174767, value: 10039103360 }, total: { amount: 7083898, value: 18388559014 } },
+            { date: "2023. 10.", vegetable: { amount: 5046964, value: 7768429438 }, fruit: { amount: 1763908, value: 5601316893 }, total: { amount: 6810872, value: 13369746331 } },
+            { date: "2023. 11.", vegetable: { amount: 5883993, value: 7945537016 }, fruit: { amount: 1842743, value: 5844353500 }, total: { amount: 7726736, value: 13789890516 } },
+            { date: "2023. 12.", vegetable: { amount: 3751972, value: 6657622976 }, fruit: { amount: 1554813, value: 6615147000 }, total: { amount: 5306785, value: 13272769976 } },
+            { date: "2024. 1.", vegetable: { amount: 3703066, value: 7334979112 }, fruit: { amount: 1782654, value: 10073356500 }, total: { amount: 5485720, value: 17408335612 } },
+            { date: "2024. 2.", vegetable: { amount: 3335168, value: 7338402214 }, fruit: { amount: 1189968, value: 7512662283 }, total: { amount: 4525136, value: 14851064497 } },
+            { date: "2024. 3.", vegetable: { amount: 3995114, value: 9145302170 }, fruit: { amount: 1214316, value: 6559611700 }, total: { amount: 5209430, value: 15704913870 } },
+            { date: "2024. 4.", vegetable: { amount: 4846635, value: 9011948551 }, fruit: { amount: 1360687, value: 6624206935 }, total: { amount: 6207322, value: 15636155486 } },
+            { date: "2024. 5.", vegetable: { amount: 5964111, value: 8883445838 }, fruit: { amount: 2030190, value: 6929520735 }, total: { amount: 7994301, value: 15812966573 } },
+            { date: "2024. 6.", vegetable: { amount: 5393020, value: 6289113865 }, fruit: { amount: 2805632, value: 6330509491 }, total: { amount: 8198652, value: 12619623356 } },
+            { date: "2024. 7.", vegetable: { amount: 4412396, value: 6469293475 }, fruit: { amount: 2586243, value: 5881850700 }, total: { amount: 6998639, value: 12351144175 } },
+            { date: "2024. 8.", vegetable: { amount: 4289095, value: 7933336206 }, fruit: { amount: 2233418, value: 7711159692 }, total: { amount: 6522513, value: 15644495898 } },
+            { date: "2024. 9.", vegetable: { amount: 4223295, value: 8905688126 }, fruit: { amount: 2239258, value: 9472988475 }, total: { amount: 6462553, value: 18378676601 } },
+            { date: "2024. 10.", vegetable: { amount: 4693436, value: 8730870254 }, fruit: { amount: 1673283, value: 5257992080 }, total: { amount: 6366719, value: 13988862334 } },
+            { date: "2024. 11.", vegetable: { amount: 6487581, value: 9534419786 }, fruit: { amount: 1786916, value: 5312287675 }, total: { amount: 8274497, value: 14846707461 } },
+            { date: "2024. 12.", vegetable: { amount: 4362143, value: 7538381787 }, fruit: { amount: 1882226, value: 7590445844 }, total: { amount: 6244369, value: 15128827631 } },
+            { date: "2025. 1", vegetable: { amount: 3540767, value: 7406716420 }, fruit: { amount: 2156793, value: 11686038655 }, total: { amount: 5697560, value: 19092755075 } },
+            { date: "2025. 2", vegetable: { amount: 3576475, value: 7465169716 }, fruit: { amount: 1136404, value: 5681893458 }, total: { amount: 4712879, value: 13147063174 } },
+            { date: "2025. 3", vegetable: { amount: 4398717, value: 8940143225 }, fruit: { amount: 1459274, value: 6697029500 }, total: { amount: 5857991, value: 15637172725 } },
+            { date: "2025. 4", vegetable: { amount: 4718655, value: 7964873170 }, fruit: { amount: 1661094, value: 6618218900 }, total: { amount: 6379749, value: 14583092070 } },
+            { date: "2025. 5", vegetable: { amount: 5080904, value: 7371024343 }, fruit: { amount: 2104339, value: 6148164187 }, total: { amount: 7185243, value: 13519188530 } },
+            { date: "2025. 6", vegetable: { amount: 4708690, value: 5895319380 }, fruit: { amount: 2558760, value: 6263072578 }, total: { amount: 7267450, value: 12158391958 } },
+            { date: "2025. 7", vegetable: { amount: 4054275, value: 6192238026 }, fruit: { amount: 2537879, value: 7697516899 }, total: { amount: 6592154, value: 13889754925 } },
+            { date: "2025. 8", vegetable: { amount: 3786564, value: 6609853433 }, fruit: { amount: 2063520, value: 7082081480 }, total: { amount: 5850084, value: 13691934913 } },
+            { date: "2025. 9", vegetable: { amount: 5218378, value: 8352681098 }, fruit: { amount: 2438502, value: 10018312635 }, total: { amount: 7656880, value: 18370993733 } }
         ];
 
         // 숫자 포맷팅 함수
@@ -571,17 +567,15 @@
             }
         }
 
-        // 통계 계산
+        // 통계 계산 (수수료 제외)
         function calculateStats(data) {
             const totalAmount = data.reduce((sum, item) => sum + item.total.amount, 0);
             const totalValue = data.reduce((sum, item) => sum + item.total.value, 0);
-            const totalFee = data.reduce((sum, item) => sum + item.total.fee, 0);
             const avgMonthlyValue = totalValue / data.length;
             
             return {
                 totalAmount,
                 totalValue,
-                totalFee,
                 avgMonthlyValue,
                 dataCount: data.length
             };
@@ -589,7 +583,7 @@
 
         // 차트 생성
         function createCharts(data, metricType = 'amount') {
-            const metricLabel = metricType === 'amount' ? '물량' : (metricType === 'value' ? '금액' : '수수료');
+            const metricLabel = metricType === 'amount' ? '물량' : '금액';
             const formatType = metricType === 'amount' ? 'amount' : 'currency';
             
             // 차트 제목 업데이트
@@ -695,7 +689,7 @@
         // 월별 비교 차트 생성
         function createMonthComparisonChart(data, metricType = 'amount') {
             const monthFilter = document.getElementById('monthFilter').value;
-            const metricLabel = metricType === 'amount' ? '물량' : (metricType === 'value' ? '금액' : '수수료');
+            const metricLabel = metricType === 'amount' ? '물량' : '금액';
             const formatType = metricType === 'amount' ? 'amount' : 'currency';
             
             // 월별 비교 차트 제목 업데이트
@@ -764,7 +758,7 @@
             });
         }
 
-        // 테이블 생성
+        // 테이블 생성 (수수료 컬럼 제거)
         function createTable(data) {
             const tbody = document.getElementById('dataTableBody');
             tbody.innerHTML = '';
@@ -775,19 +769,16 @@
                     <td>${item.date}</td>
                     <td>${formatNumber(item.vegetable.amount, 'amount')}</td>
                     <td>${formatNumber(item.vegetable.value, 'currency')}</td>
-                    <td>${formatNumber(item.vegetable.fee, 'currency')}</td>
                     <td>${formatNumber(item.fruit.amount, 'amount')}</td>
                     <td>${formatNumber(item.fruit.value, 'currency')}</td>
-                    <td>${formatNumber(item.fruit.fee, 'currency')}</td>
                     <td>${formatNumber(item.total.amount, 'amount')}</td>
                     <td>${formatNumber(item.total.value, 'currency')}</td>
-                    <td>${formatNumber(item.total.fee, 'currency')}</td>
                 `;
                 tbody.appendChild(row);
             });
         }
 
-        // 통계 카드 생성
+        // 통계 카드 생성 (수수료 제외)
         function createStatsCards(stats) {
             const statsGrid = document.getElementById('statsGrid');
             statsGrid.innerHTML = `
